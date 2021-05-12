@@ -35,8 +35,7 @@ public class window extends JFrame {
      *
      */
     private static final long serialVersionUID = 3677552209840062661L;
-    private tile[][] mapState = new mapState().getMapState();;
-    //private int timeRemaining = 1000;
+    private tile[][] mapState = new mapState().getMapState();
     private int flagLeft = 40;
     private long longTime;
     private long distTime = 1000;

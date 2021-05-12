@@ -128,7 +128,7 @@ public class server extends JFrame implements Runnable{
             int minscore = rs.getInt(2);
             if(highscore > minscore) {
                 sql = "update HighScore "
-                        + "set name = \"" + playername + "\", "
+                        + "set name = \'" + playername + "\', "
                         + "score = "+ highscore +" "
                         + "where id = " + id + ";";
                 Statement update = con.createStatement();
@@ -165,20 +165,20 @@ public class server extends JFrame implements Runnable{
             int time = inputFromClient.readInt();
             int flagleft = inputFromClient.readInt();
 
-            String sq = "Select time from maptable where gamename = \"" + gameName + "\";";
+            String sq = "Select time from maptable where gamename = \'" + gameName + "\';";
             PreparedStatement search = con.prepareStatement(sq);
             ResultSet rs = search.executeQuery();
             if(rs.next()) {
                 String sql = "update maptable set "
-                        + "gamename = \""+ gameName +"\",gamemap = ?,time = " + time
+                        + "gamename = \''"+ gameName +"\',gamemap = ?,time = " + time
                         + ",flag = " + flagleft
-                        +" where gamename = \"" + gameName +"\";";
+                        +" where gamename = \'" + gameName +"\';";
                 PreparedStatement statement = con.prepareStatement(sql);
                 statement.setBytes(1, map);
                 statement.execute();
             }else {
                 String sql = "insert into maptable  values("
-                        + "\""+ gameName +"\",?," + time
+                        + "\''"+ gameName +"\',?," + time
                         + "," + flagleft
                         +");";
                 PreparedStatement statement = con.prepareStatement(sql);
@@ -193,7 +193,7 @@ public class server extends JFrame implements Runnable{
 
             String s = fromClient.readUTF();
 
-            String sql = "select * from maptable where gamename = \""+s+"\";";
+            String sql = "select * from maptable where gamename = \'"+s+"\';";
             PreparedStatement statement = con.prepareStatement(sql);
             ResultSet rs = statement.executeQuery();
 
@@ -224,7 +224,7 @@ public class server extends JFrame implements Runnable{
         }
 
         private void searchExistingGame() throws SQLException, IOException {
-            String sql = "Select gamename from maptable;";
+            String sql = "Select gamename from maptable order by gamename asc;";
             PreparedStatement statement = con.prepareStatement(sql);
             ResultSet rs = statement.executeQuery();
             for(int i = 0; i < 5; i++) {
