@@ -1,6 +1,7 @@
 package window;
 
 import kernel.*;
+import database.*;
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
@@ -334,13 +335,7 @@ public class window extends JFrame {
             toServer.writeInt(flagLeft);
             toServer.flush();
 
-            dispose();
-            window w = new window(mapState, tmptime, flagLeft);
-            w.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-            w.setLocation(500, 150);
-            w.setVisible(true);
-
-
+            openSavedGame(gameName);
 //			JOptionPane.showMessageDialog(null, str, "HighScore", JOptionPane.INFORMATION_MESSAGE, null);
         } catch (IOException e) {
             e.printStackTrace();
@@ -367,7 +362,6 @@ public class window extends JFrame {
                         // TODO Auto-generated method stub
                         openSavedGame(name);
                     }
-
                 }
                 item.addActionListener(new openPreviousGame());
                 tmp.add(item);

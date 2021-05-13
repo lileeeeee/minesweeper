@@ -33,7 +33,8 @@ public class server extends JFrame implements Runnable{
      */
     private static final long serialVersionUID = -8874088438115985366L;
     private Connection con;
-
+    private DataOutputStream outputToClient;
+    private DataInputStream inputFromClient;
 
     public server() {
         Thread t = new Thread(this);
@@ -53,8 +54,44 @@ public class server extends JFrame implements Runnable{
                 // Listen for a new connection request
                 Socket socket = serverSocket.accept();
 
+                try {
+                    // Create data input and output streams
+                    inputFromClient = new DataInputStream(socket.getInputStream());
+                    outputToClient = new DataOutputStream(socket.getOutputStream());
+
+                    switch(inputFromClient.readInt()) {
+                        case 0:
+                            new Thread(new update(socket)).start();
+                            break;
+                        case 1:
+                            new Thread(new show(socket)).start();
+                            break;
+                        case 2:
+                            Thread tmp = new Thread(new store(socket));
+                            tmp.start();
+                            tmp.join();
+                            break;
+                        case 3:
+                            new Thread(new load(socket)).start();
+                            break;
+                        case 4:
+                            new Thread(new search(socket)).start();
+                            break;
+                        default:
+
+                            break;
+                    }
+
+                }
+                catch(IOException ex) {
+                    ex.printStackTrace();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+
                 // Create and start a new thread for the connection
-                new Thread(new HandleAClient(socket)).start();
+                //new Thread(new HandleAClient(socket)).start();
             }
         }
         catch(IOException ex) {
@@ -67,7 +104,7 @@ public class server extends JFrame implements Runnable{
 
     }
     // Define the thread class for handling new connection
-    class HandleAClient implements Runnable {
+    class update implements Runnable{
         private Socket socket; // A connected socket
         private String playername;
         private int highscore;
@@ -75,46 +112,24 @@ public class server extends JFrame implements Runnable{
         DataInputStream inputFromClient;
 
         /** Construct a thread */
-        public HandleAClient(Socket socket) {
+        public update(Socket socket) {
             this.socket = socket;
-        }
-
-        /** Run a thread */
-        public void run() {
-
             try {
-                // Create data input and output streams
                 inputFromClient = new DataInputStream(socket.getInputStream());
                 outputToClient = new DataOutputStream(socket.getOutputStream());
-
-                switch(inputFromClient.readInt()) {
-                    case 0:
-                        updateHighScore();
-                        break;
-                    case 1:
-                        showHighScore();
-                        break;
-                    case 2:
-                        storeMap();
-                        break;
-                    case 3:
-                        loadMap();
-                        break;
-                    case 4:
-                        searchExistingGame();
-                        break;
-                    default:
-
-                        break;
-                }
-
-            }
-            catch(IOException |SQLException ex) {
-                ex.printStackTrace();
-            } catch (ClassNotFoundException e) {
+            } catch (IOException e) {
                 e.printStackTrace();
             }
-
+        }
+        @Override
+        public void run() {
+            try {
+                updateHighScore();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (SQLException throwables) {
+                throwables.printStackTrace();
+            }
         }
 
         private void updateHighScore() throws IOException, SQLException {
@@ -135,6 +150,34 @@ public class server extends JFrame implements Runnable{
                 update.execute(sql);
             }
         }
+    }
+    class show implements Runnable{
+        private Socket socket; // A connected socket
+        private String playername;
+        private int highscore;
+        DataOutputStream outputToClient;
+        DataInputStream inputFromClient;
+
+        /** Construct a thread */
+        public show(Socket socket) {
+            this.socket = socket;
+            try {
+                inputFromClient = new DataInputStream(socket.getInputStream());
+                outputToClient = new DataOutputStream(socket.getOutputStream());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        @Override
+        public void run() {
+            try {
+                showHighScore();
+            } catch (SQLException throwables) {
+                throwables.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
 
         private void showHighScore() throws SQLException, IOException {
             String sql = "Select * from HighScore order by score desc";
@@ -147,6 +190,36 @@ public class server extends JFrame implements Runnable{
             }
             outputToClient.writeUTF(str);
             outputToClient.flush();
+        }
+    }
+    class store implements Runnable{
+        private Socket socket; // A connected socket
+        private String playername;
+        private int highscore;
+        DataOutputStream outputToClient;
+        DataInputStream inputFromClient;
+
+        /** Construct a thread */
+        public store(Socket socket) {
+            this.socket = socket;
+            try {
+                inputFromClient = new DataInputStream(socket.getInputStream());
+                outputToClient = new DataOutputStream(socket.getOutputStream());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        @Override
+        public void run() {
+            try {
+                storeMap();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            } catch (SQLException throwables) {
+                throwables.printStackTrace();
+            }
         }
 
         private void storeMap() throws IOException, ClassNotFoundException, SQLException {
@@ -172,13 +245,13 @@ public class server extends JFrame implements Runnable{
                 String sql = "update maptable set "
                         + "gamename = \''"+ gameName +"\',gamemap = ?,time = " + time
                         + ",flag = " + flagleft
-                        +" where gamename = \'" + gameName +"\';";
+                        +" where gamename = \'" + gameName + "\';";
                 PreparedStatement statement = con.prepareStatement(sql);
                 statement.setBytes(1, map);
                 statement.execute();
             }else {
                 String sql = "insert into maptable  values("
-                        + "\''"+ gameName +"\',?," + time
+                        + "\'"+ gameName +"\',?," + time
                         + "," + flagleft
                         +");";
                 PreparedStatement statement = con.prepareStatement(sql);
@@ -186,7 +259,36 @@ public class server extends JFrame implements Runnable{
                 statement.execute();
             }
         }
+    }
+    class load implements Runnable{
+        private Socket socket; // A connected socket
+        private String playername;
+        private int highscore;
+        DataOutputStream outputToClient;
+        DataInputStream inputFromClient;
 
+        /** Construct a thread */
+        public load(Socket socket) {
+            this.socket = socket;
+            try {
+                inputFromClient = new DataInputStream(socket.getInputStream());
+                outputToClient = new DataOutputStream(socket.getOutputStream());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        @Override
+        public void run() {
+            try {
+                loadMap();
+            } catch (SQLException throwables) {
+                throwables.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            }
+        }
         private void loadMap() throws SQLException, IOException, ClassNotFoundException {
             DataOutputStream toClient = new DataOutputStream(socket.getOutputStream());
             DataInputStream fromClient = new DataInputStream(socket.getInputStream());
@@ -222,6 +324,34 @@ public class server extends JFrame implements Runnable{
                 toClient.writeBoolean(false);
             }
         }
+    }
+    class search implements Runnable{
+        private Socket socket; // A connected socket
+        private String playername;
+        private int highscore;
+        DataOutputStream outputToClient;
+        DataInputStream inputFromClient;
+
+        /** Construct a thread */
+        public search(Socket socket) {
+            this.socket = socket;
+            try {
+                inputFromClient = new DataInputStream(socket.getInputStream());
+                outputToClient = new DataOutputStream(socket.getOutputStream());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        @Override
+        public void run() {
+            try {
+                searchExistingGame();
+            } catch (SQLException throwables) {
+                throwables.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
 
         private void searchExistingGame() throws SQLException, IOException {
             String sql = "Select gamename from maptable order by gamename asc;";
@@ -239,12 +369,12 @@ public class server extends JFrame implements Runnable{
             outputToClient.writeBoolean(false);
             outputToClient.flush();
         }
-
     }
 
-    public static void main (String[] args){
+    public static void main(String[] args){
         new server();
     }
+
 
 }
 
