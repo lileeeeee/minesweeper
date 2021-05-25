@@ -27,7 +27,7 @@ import kernel.tile;
 import window.window;
 
 
-public class server extends JFrame implements Runnable{
+public class server implements Runnable{
     /**
      *
      */
@@ -57,7 +57,7 @@ public class server extends JFrame implements Runnable{
                 try {
                     // Create data input and output streams
                     inputFromClient = new DataInputStream(socket.getInputStream());
-                    outputToClient = new DataOutputStream(socket.getOutputStream());
+                    //outputToClient = new DataOutputStream(socket.getOutputStream());
 
                     switch(inputFromClient.readInt()) {
                         case 0:
@@ -371,9 +371,9 @@ public class server extends JFrame implements Runnable{
         }
     }
 
-    public static void main(String[] args){
-        new server();
-    }
+//    public static void main(String[] args){
+//        new server();
+//    }
 
 
 }

@@ -387,11 +387,6 @@ public class window extends JFrame {
             DataOutputStream toServer = new DataOutputStream(socket.getOutputStream());
             DataInputStream fromServer = new DataInputStream(socket.getInputStream());
 
-//			String name = JOptionPane.showInputDialog(null,"Please enter the name of the game:" , "Open Saved Game", JOptionPane.QUESTION_MESSAGE);
-//
-//			if(name == null) return;
-//			if(name.length() == 0) return;
-
             toServer.writeInt(3);
             toServer.flush();
 
